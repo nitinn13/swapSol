@@ -9,8 +9,8 @@ const Landing = () => {
     const [solAmount, setSolAmount] = useState<string>("");
     const [usdcAmount, setUsdcAmount] = useState<string>("");
 
-    // const connection = new Connection('https://api.mainnet-beta.solana.com');
-    const connection = new Connection('https://api.devnet.solana.com');
+    const connection = new Connection('https://api.mainnet-beta.solana.com');
+    // const connection = new Connection('https://api.devnet.solana.com');
 
 
 
