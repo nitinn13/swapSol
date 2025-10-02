@@ -1,4 +1,4 @@
-import {  useWallet } from "@solana/wallet-adapter-react";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { Connection, VersionedTransaction } from '@solana/web3.js';
 import { useState, useEffect } from "react";
 import { WalletNavbar } from "./components/WalletNavbar";
@@ -11,9 +11,6 @@ const Landing = () => {
 
     const connection = new Connection('https://api.mainnet-beta.solana.com');
     // const connection = new Connection('https://api.devnet.solana.com');
-
-
-
 
     const quote = async (amount: string) => {
         const sol = parseFloat(amount);
@@ -38,8 +35,9 @@ const Landing = () => {
             console.log("Quote:", finalQuote);
 
             if (finalQuote && finalQuote.outAmount) {
-                setUsdcAmount((finalQuote.outAmount / 1_000_000).toFixed(6));
+                setUsdcAmount((Number(finalQuote.outAmount) / 1_000_000).toFixed(6));
             }
+
             return finalQuote;
         } catch (err) {
             console.error("Error fetching quote:", err);
@@ -84,10 +82,28 @@ const Landing = () => {
             const swapTransactionBuf = Buffer.from(swapTransaction, "base64");
             let transaction = VersionedTransaction.deserialize(swapTransactionBuf);
 
+            if (!wallet || !wallet.signTransaction) {
+                throw new Error("Wallet not connected or signTransaction not available");
+            }
+            const signedTx = await wallet.signTransaction(transaction);
 
-            const txid = await wallet.sendTransaction(transaction, connection, {
-                skipPreflight: false,
+            const rawTransaction = signedTx.serialize();
+
+            const latestBlockHash = await connection.getLatestBlockhash();
+
+            const txid = await connection.sendRawTransaction(rawTransaction, {
+                skipPreflight: true,
+                maxRetries: 2,
             });
+
+            await connection.confirmTransaction({
+                blockhash: latestBlockHash.blockhash,
+                lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+                signature: txid,
+            },
+                "confirmed"
+            );
+
 
             console.log(`Success: https://solscan.io/tx/${txid}`);
         } catch (err) {
