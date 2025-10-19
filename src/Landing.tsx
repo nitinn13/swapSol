@@ -9,6 +9,10 @@ const Landing = () => {
     const [solAmount, setSolAmount] = useState<string>("");
     const [usdcAmount, setUsdcAmount] = useState<string>("");
 
+   
+
+    const userPubKey = wallet.publicKey?.toString();
+
     const connection = new Connection('https://api.mainnet-beta.solana.com');
     // const connection = new Connection('https://api.devnet.solana.com');
 
@@ -23,15 +27,17 @@ const Landing = () => {
         try {
             const amountInLamports = Math.floor(sol * 1_000_000_000);
 
+            if (!userPubKey) return console.error("No wallet connected");
             const quoteResponse = await fetch(
-                `https://quote-api.jup.ag/v6/quote?inputMint=So11111111111111111111111111111111111111112` +
+                `https://lite-api.jup.ag/ultra/v1/order?` +
+                `inputMint=So11111111111111111111111111111111111111112` +
                 `&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` +
                 `&amount=${amountInLamports}` +
-                `&slippageBps=50`
+                `&taker=${userPubKey}`
             );
 
-            const finalQuote = await quoteResponse.json();
 
+            const finalQuote = await quoteResponse.json();
             console.log("Quote:", finalQuote);
 
             if (finalQuote && finalQuote.outAmount) {
@@ -67,45 +73,42 @@ const Landing = () => {
         }
 
         try {
-            const swapResponse = await fetch("https://quote-api.jup.ag/v6/swap", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    quoteResponse: finalQuote,
-                    userPublicKey: wallet.publicKey.toString(),
-                    wrapAndUnwrapSol: true,
-                }),
-            });
 
-            const { swapTransaction } = await swapResponse.json();
+            const transactionBase64 = finalQuote.transaction;
 
-            const swapTransactionBuf = Buffer.from(swapTransaction, "base64");
-            let transaction = VersionedTransaction.deserialize(swapTransactionBuf);
+            const transaction = VersionedTransaction.deserialize(Buffer.from(transactionBase64, 'base64'));
+
+
 
             if (!wallet || !wallet.signTransaction) {
                 throw new Error("Wallet not connected or signTransaction not available");
             }
-            const signedTx = await wallet.signTransaction(transaction);
 
-            const rawTransaction = signedTx.serialize();
-
-            const latestBlockHash = await connection.getLatestBlockhash();
-
-            const txid = await connection.sendRawTransaction(rawTransaction, {
-                skipPreflight: true,
-                maxRetries: 2,
-            });
-
-            await connection.confirmTransaction({
-                blockhash: latestBlockHash.blockhash,
-                lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
-                signature: txid,
-            },
-                "confirmed"
-            );
+            const signedTx = await wallet?.signTransaction(transaction);
+            const signedTransaction = Buffer.from(signedTx.serialize()).toString('base64');
 
 
-            console.log(`Success: https://solscan.io/tx/${txid}`);
+            const executeResponse = await (
+                await fetch('https://lite-api.jup.ag/ultra/v1/execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        signedTransaction: signedTransaction,
+                        requestId: finalQuote.requestId,
+                    }),
+                })
+            ).json();
+
+            if (executeResponse.status === "Success") {
+                console.log('Swap successful:', JSON.stringify(executeResponse, null, 2));
+                console.log(`https://solscan.io/tx/${executeResponse.signature}`);
+            } else {
+                console.error('Swap failed:', JSON.stringify(executeResponse, null, 2));
+                console.log(`https://solscan.io/tx/${executeResponse.signature}`);
+            }
+
         } catch (err) {
             console.error("Swap failed:", err);
         }
@@ -174,7 +177,7 @@ const Landing = () => {
                         <div className="pt-4 border-t border-zinc-800 space-y-2 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Rate</span>
-                                <span className="text-gray-300">1 SOL ≈ 213 USDC</span>
+                                <span className="text-gray-300">1 SOL ≈ </span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Swap slippage tolerance</span>
