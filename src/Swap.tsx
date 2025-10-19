@@ -1,5 +1,5 @@
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Connection, VersionedTransaction } from '@solana/web3.js';
+import {  VersionedTransaction } from '@solana/web3.js';
 import { useState, useEffect } from "react";
 import { WalletNavbar } from "./components/WalletNavbar";
 import { ArrowDown, CheckCircle2, Loader2, ExternalLink, Settings, RefreshCw, Info, TrendingUp } from "lucide-react";
@@ -12,7 +12,7 @@ const Landing = () => {
     const [txSignature, setTxSignature] = useState<string>("");
     const [errorMessage, setErrorMessage] = useState<string>("");
     const [rate, setRate] = useState<string>("");
-    const [priceImpact, setPriceImpact] = useState<string>("0.01");
+    const [priceImpact] = useState<string>("0.01");
 
     const userPubKey = wallet.publicKey?.toString();
     // const connection = new Connection('https://api.mainnet-beta.solana.com');

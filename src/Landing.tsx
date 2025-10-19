@@ -1,5 +1,5 @@
 import { useWallet } from "@solana/wallet-adapter-react";
-import { Connection, VersionedTransaction } from '@solana/web3.js';
+import {  VersionedTransaction } from '@solana/web3.js';
 import { useState, useEffect } from "react";
 import { WalletNavbar } from "./components/WalletNavbar";
 import { ArrowDown, CheckCircle2, Loader2, ExternalLink, Zap } from "lucide-react";
