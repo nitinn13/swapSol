@@ -2,7 +2,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { VersionedTransaction } from '@solana/web3.js';
 import { useState, useEffect, useRef } from "react";
 import { WalletNavbar } from "./components/WalletNavbar";
-import { ArrowDown, CheckCircle2, Loader2, ExternalLink, Zap, ChevronDown, Search, X, ArrowDownUp } from "lucide-react";
+import { CheckCircle2, Loader2, ExternalLink, Zap, ChevronDown, Search, X, ArrowDownUp } from "lucide-react";
 import { solanaTokens } from "./data/tokens";
 
 interface TokenInfo {
@@ -136,8 +136,8 @@ const Landing = () => {
         return tokenList.find(token => token.address === address) || solanaTokens.SOL;
     };
 
-    const inputToken = getTokenByAddress(inputMint);
-    const outputToken = getTokenByAddress(outputMint);
+    // const inputToken = getTokenByAddress(inputMint);
+    // const outputToken = getTokenByAddress(outputMint);
 
     const filteredTokens = allTokens.filter(token => 
         token.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -301,7 +301,7 @@ const Landing = () => {
         setfinalAmount(tempInputAmount);
     };
 
-    const TokenItem = ({ token, onSelect, showBalance = false }: { token: TokenInfo; onSelect: (token: TokenInfo) => void; showBalance?: boolean }) => {
+    const TokenItem = ({ token, onSelect}: { token: TokenInfo; onSelect: (token: TokenInfo) => void; showBalance?: boolean }) => {
         const [iconError, setIconError] = useState(false);
 
         const formatAddress = (address: string) => {
@@ -328,10 +328,10 @@ const Landing = () => {
             return colors[index];
         };
 
-        const calculateUSDValue = () => {
-            if (!token.usdPrice || !token.balance) return '0.00';
-            return (parseFloat(token.balance) * token.usdPrice).toFixed(4);
-        };
+        // const calculateUSDValue = () => {
+        //     if (!token.usdPrice || !token.balance) return '0.00';
+        //     return (parseFloat(token.balance) * token.usdPrice).toFixed(4);
+        // };
 
         return (
             <button
@@ -463,7 +463,7 @@ const Landing = () => {
         const [iconError, setIconError] = useState(false);
 
         const getFallbackColor = (symbol: string) => {
-            return isInput ? 'bg-gradient-to-br from-purple-500 to-blue-500' : 'bg-gradient-to-br from-green-500 to-emerald-500';
+            return symbol ? 'bg-gradient-to-br from-purple-500 to-blue-500' : 'bg-gradient-to-br from-green-500 to-emerald-500';
         };
 
         return (
